@@ -2,9 +2,9 @@ name: Monitor de Sites
 
 on:
   schedule:
-    # A cada 4 horas, em horário UTC (o GitHub sempre usa UTC).
-    # Para rodar a cada 2 horas, troque por: "0 */2 * * *"
-    - cron: "0 */4 * * *"
+    # A cada 15 minutos (horário UTC). O GitHub pode atrasar alguns minutos
+    # em horários de pico. Outros exemplos: "0 */2 * * *" (2h), "0 */4 * * *" (4h)
+    - cron: "*/15 * * * *"
   workflow_dispatch: {}   # permite rodar manualmente pela aba Actions (bom p/ testar)
 
 jobs:
