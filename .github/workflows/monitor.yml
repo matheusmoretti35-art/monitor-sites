@@ -2,9 +2,9 @@ name: Monitor de Sites
 
 on:
   schedule:
-    # A cada 15 minutos (horário UTC). O GitHub pode atrasar alguns minutos
-    # em horários de pico. Outros exemplos: "0 */2 * * *" (2h), "0 */4 * * *" (4h)
-    - cron: "*/15 * * * *"
+    # A cada 15 min, nos minutos 7/22/37/52 — fugir dos minutos 0/15/30/45
+    # reduz atraso, pois é quando a fila de agendamentos do GitHub lota.
+    - cron: "7-59/15 * * * *"
   workflow_dispatch: {}   # permite rodar manualmente pela aba Actions (bom p/ testar)
   push:
     branches: [main]      # roda também a cada mudança no repositório
