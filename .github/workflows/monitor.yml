@@ -6,6 +6,8 @@ on:
     # em horários de pico. Outros exemplos: "0 */2 * * *" (2h), "0 */4 * * *" (4h)
     - cron: "*/15 * * * *"
   workflow_dispatch: {}   # permite rodar manualmente pela aba Actions (bom p/ testar)
+  push:
+    branches: [main]      # roda também a cada mudança no repositório
 
 jobs:
   monitorar:
