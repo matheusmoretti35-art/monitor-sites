@@ -1,0 +1,41 @@
+name: Monitor de Sites
+
+on:
+  schedule:
+    # A cada 4 horas, em horário UTC (o GitHub sempre usa UTC).
+    # Para rodar a cada 2 horas, troque por: "0 */2 * * *"
+    - cron: "0 */4 * * *"
+  workflow_dispatch: {}   # permite rodar manualmente pela aba Actions (bom p/ testar)
+
+jobs:
+  monitorar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Baixar o código do repositório
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: Verificar sites e enviar avisos
+        env:
+          # Telegram (recomendado)
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          # WhatsApp via Green API (green-api.com — conecta seu próprio WhatsApp)
+          WHATSAPP_FONE: ${{ secrets.WHATSAPP_FONE }}
+          GREEN_API_INSTANCE: ${{ secrets.GREEN_API_INSTANCE }}
+          GREEN_API_TOKEN: ${{ secrets.GREEN_API_TOKEN }}
+          GREEN_API_URL: ${{ secrets.GREEN_API_URL }}
+          # WhatsApp via CallMeBot (opcional — quando o bot voltar a aceitar cadastros)
+          CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
+          # Troque para "true" se quiser receber mensagem SÓ quando um site cair
+          SO_ALERTAS: "false"
+        run: python monitor.py
