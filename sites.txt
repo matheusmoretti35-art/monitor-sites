@@ -1,8 +1,7 @@
 # Lista de sites monitorados — um por linha, no formato:
 #   Nome do site | https://endereco.com
 # Linhas começando com # são ignoradas.
-# EDITE ESTE ARQUIVO com os seus sites reais!
 
-Spider Store | https://www.exemplo-spiderstore.com.br
-Meu Portfólio | https://www.exemplo-portfolio.com.br
-API do Backend | https://api.exemplo.com.br/health
+RB Run Club | https://rbrunclub.com.br/
+Toca do Aranha | https://tocadoaranha.com.br/
+Conexão Freelance | https://www.conexaofreelance.com.br/
