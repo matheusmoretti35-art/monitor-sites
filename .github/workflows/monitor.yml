@@ -2,9 +2,11 @@ name: Monitor de Sites
 
 on:
   schedule:
-    # A cada 15 min, nos minutos 7/22/37/52 — fugir dos minutos 0/15/30/45
-    # reduz atraso, pois é quando a fila de agendamentos do GitHub lota.
-    - cron: "7-59/15 * * * *"
+    # Relatório completo a cada 4 horas. O alarme rápido (queda em ~1 min) fica
+    # por conta do HetrixTools — o cron do GitHub é "melhor esforço" e atrasa,
+    # então não serve para alerta urgente, só para o resumo periódico.
+    # O minuto 17 (em vez de 0) evita a fila cheia do início de cada hora.
+    - cron: "17 */4 * * *"
   workflow_dispatch: {}   # permite rodar manualmente pela aba Actions (bom p/ testar)
   push:
     branches: [main]      # roda também a cada mudança no repositório

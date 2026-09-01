@@ -172,6 +172,26 @@ Para mudar a frequência, edite a linha do `cron`:
   propósito — o GitHub te manda um e-mail de "workflow failed", servindo como
   segundo alerta gratuito.
 
+## ⚠️ Por que este monitor NÃO serve como alarme urgente
+
+O evento `schedule` do GitHub Actions é **"melhor esforço"**: a própria
+documentação do GitHub avisa que agendamentos atrasam em períodos de carga, e
+na prática intervalos curtos (5–15 min) atrasam muito ou têm horários pulados.
+Em teste real neste repositório, um cron de 15 min ficou **mais de 1 hora sem
+disparar** nenhuma vez.
+
+Por isso a divisão de tarefas:
+
+| Ferramenta | Papel | Frequência |
+| ---------- | ----- | ---------- |
+| **HetrixTools** (hetrixtools.com) | Alarme urgente — avisa no Telegram quando um site cai | 1 minuto |
+| **Este repositório** | Relatório completo periódico de todos os sites | 4 horas |
+
+O plano gratuito do HetrixTools inclui 15 monitores, checagem de 1 minuto e
+notificação via Telegram (só exige login no painel a cada 90 dias).
+Obs.: no UptimeRobot a integração com Telegram é **paga** (planos Solo/Team/
+Enterprise), por isso não foi usado.
+
 ## Coisas boas de saber
 
 - **O horário do cron é UTC** (Brasília = UTC−3) e o GitHub pode atrasar alguns
