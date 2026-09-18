@@ -1,28 +1,55 @@
 # 🖥️ Monitor de Sites com aviso no celular
 
-Verifica de tempos em tempos se seus sites estão no ar e manda um relatório no
-seu celular — tudo rodando de graça no GitHub Actions, sem precisar deixar o
-computador ligado.
+Verifica de tempos em tempos se seus sites estão no ar, guarda o histórico
+(quando caiu, quanto tempo ficou fora, uptime), vigia o vencimento do SSL e
+manda um relatório no seu celular — tudo rodando de graça no GitHub Actions,
+sem precisar deixar o computador ligado.
 
-- ✅ **Python** + `requests` (código simples, fácil de mexer)
-- ✅ **GitHub Actions** com agendamento (padrão: a cada 4 horas)
-- ✅ Três canais de aviso — o script envia por **todos os que você configurar**
-  nos secrets:
-  - **Telegram** (recomendado — grátis, ilimitado, 5 min de setup)
-  - **WhatsApp via Green API** (grátis — seu próprio número vira o "bot")
-  - **WhatsApp via CallMeBot** (grátis, mas em ago/2026 está sem aceitar
-    novos cadastros; quando reabrir, é só adicionar os secrets)
+## O que ele verifica
+
+| Checagem | Como | O que pega |
+| --- | --- | --- |
+| **Site responde?** | HTTP `GET` com 2 tentativas e timeout de 15s | Servidor fora, DNS quebrado, erro 4xx/5xx, timeout |
+| **Página é a certa?** | Procura um texto (a marca) no HTML | "Falsos 200": página de manutenção, domínio estacionado, erro do CMS |
+| **SSL vai vencer?** | Lê a validade do certificado | Avisa 14 dias antes — certificado vencido derruba o site "sem cair" |
+| **Está lento?** | Tempo de resposta > 5s ganha um 🐢 | Servidor sobrecarregado, problema chegando |
+| **Caiu / voltou?** | Compara com a execução anterior (`status.json`) | Avisa a mudança e quanto tempo ficou fora |
 
 Exemplo da mensagem que chega:
 
 ```
-🖥️ Monitor de Sites — 31/08/2026 14:00 (Brasília)
+🖥️ Monitor de Sites — 18/09/2026 16:03 (Brasília)
 
-✅ Spider Store — online (200, 340ms)
-🔴 API do Backend — FORA DO AR (HTTP 500)
+🟢 VOLTOU: Toca do Aranha — ficou fora por 2h13min
+⚠️ SSL de RB Run Club vence em 6 dia(s) (24/09) — renove!
 
-⚠️ Atenção: 1 site(s) com problema!
+✅ RB Run Club — 200, 487ms · uptime 100%
+✅ Toca do Aranha — 200, 503ms · uptime 98,9%
+✅ Conexão Freelance — 200, 230ms · uptime 100%
+
+🟢 Tudo normal! 3 site(s) online.
+🕓 Último incidente: Toca do Aranha, 18/09 13:50, fora por 2h13min
 ```
+
+## Arquivos
+
+| Arquivo | Para quê |
+| --- | --- |
+| `sites.txt` | **Sua lista de sites** — o único arquivo que você precisa editar |
+| `monitor.py` | O script (Python + `requests`) |
+| `.github/workflows/monitor.yml` | O agendamento no GitHub Actions |
+| `status.json` | Histórico — **criado e atualizado pelo próprio robô**, não edite |
+| `requirements.txt` | Dependências |
+
+### Formato do `sites.txt`
+
+```
+Nome do site | https://endereco.com | texto que deve aparecer na página
+```
+
+O 3º campo é opcional, mas recomendado: use algo estável como o **nome da
+marca**. Se a página responder 200 mas não tiver esse texto, conta como fora.
+Linhas começando com `#` são ignoradas.
 
 ---
 
@@ -55,23 +82,21 @@ para mandar avisos para você mesmo.
 2. No painel, crie uma **instância** no plano gratuito (Developer).
 3. Abra a instância e escaneie o **QR code** com o WhatsApp do celular
    (WhatsApp → Configurações → **Dispositivos conectados** → Conectar).
-4. Copie do painel: **idInstance** (ex: `7103123456`), **apiTokenInstance**
-   (uma chave longa) e a **apiUrl** mostrada (ex: `https://7103.api.greenapi.com`).
+4. Copie do painel: **idInstance**, **apiTokenInstance** e a **apiUrl**.
 5. Os secrets serão: `WHATSAPP_FONE` (seu número, ex: `+5514999999999`),
-   `GREEN_API_INSTANCE`, `GREEN_API_TOKEN` e `GREEN_API_URL` (essa apiUrl).
+   `GREEN_API_INSTANCE`, `GREEN_API_TOKEN` e `GREEN_API_URL`.
 
 > ⚠️ A Green API usa o protocolo do WhatsApp Web (não oficial). Para pouco
 > volume, mandando só para você mesmo, funciona bem — mas evite usar seu número
-> comercial principal se quiser risco zero. Se a instância desconectar um dia,
-> é só escanear o QR de novo.
+> comercial principal se quiser risco zero.
 
 **Opção C — WhatsApp via CallMeBot (quando reabrir cadastros):**
 
 1. Adicione o número do bot aos contatos (veja o número atual em
    https://www.callmebot.com/blog/free-api-whatsapp-messages/).
 2. Envie pelo WhatsApp: `I allow callmebot to send me messages`
-3. Ele responde com a sua **API key** (ex: `123456`) — são os secrets
-   `WHATSAPP_FONE` (seu número) e `CALLMEBOT_APIKEY`.
+3. Ele responde com a sua **API key** — são os secrets `WHATSAPP_FONE` e
+   `CALLMEBOT_APIKEY`.
 
 > Pode configurar mais de uma opção: o script envia por todos os canais cujos
 > secrets existirem.
@@ -80,30 +105,29 @@ para mandar avisos para você mesmo.
 
 1. Acesse https://github.com/new
 2. Nome: `monitor-sites` (ou o que preferir)
-3. Pode marcar como **Private** (privado) — os 2.000 minutos/mês gratuitos de
-   Actions são mais que suficientes (este monitor gasta ~90 min/mês).
-   Se for **Public**, os minutos são ilimitados.
+3. Deixe **Public** (público): minutos de Actions ilimitados. Os secrets
+   continuam criptografados e invisíveis mesmo com o repositório público.
+   (Se preferir privado, são 2.000 min/mês grátis — a cada 4h gasta ~90.)
 4. Clique em **Create repository**.
 
 ### Passo 3 — Subir os arquivos
 
 **Opção A — pelo site (sem instalar nada):**
 
-1. No repositório novo, clique em **uploading an existing file** (ou `Add file > Upload files`)
+1. No repositório novo, clique em **uploading an existing file**
 2. Arraste `monitor.py`, `sites.txt` e `requirements.txt` e confirme o commit.
 3. O site **não deixa arrastar pastas ocultas**, então crie o workflow assim:
    `Add file > Create new file` → no nome digite
    `.github/workflows/monitor.yml` → cole o conteúdo do arquivo `monitor.yml`
    deste projeto → **Commit changes**.
 
-**Opção B — pelo git (se já usa):**
+**Opção B — pelo git:**
 
 ```bash
 cd monitor-sites
-git init
+git init -b main
 git add .
-git commit -m "Monitor de sites com aviso no WhatsApp"
-git branch -M main
+git commit -m "Monitor de sites"
 git remote add origin https://github.com/SEU_USUARIO/monitor-sites.git
 git push -u origin main
 ```
@@ -131,12 +155,11 @@ em maiúsculas):
 
 ### Passo 5 — Cadastrar os seus sites
 
-Edite o arquivo `sites.txt` (pode editar direto no site do GitHub, no ícone de
-lápis) e coloque seus sites reais, um por linha:
+Edite o `sites.txt` (pode ser pelo lápis no próprio GitHub):
 
 ```
-Spider Store | https://www.seusite.com.br
-Portfólio | https://portfolio.seusite.com.br
+Spider Store | https://www.seusite.com.br | Spider Store
+Portfólio | https://portfolio.seusite.com.br | Moretti Design
 ```
 
 ### Passo 6 — Testar agora (sem esperar 4 horas)
@@ -152,40 +175,39 @@ Se der erro, clique na execução vermelha e leia o log do passo
 
 ### Passo 7 — Pronto! Roda sozinho
 
-O agendamento já está configurado no `monitor.yml` para rodar **a cada 4 horas**.
-Para mudar a frequência, edite a linha do `cron`:
-
-| Frequência      | Linha no monitor.yml       |
-| --------------- | -------------------------- |
-| A cada 2 horas  | `- cron: "0 */2 * * *"`    |
-| A cada 4 horas  | `- cron: "0 */4 * * *"`    |
-| A cada 6 horas  | `- cron: "0 */6 * * *"`    |
-| 1x por dia às 8h de Brasília | `- cron: "0 11 * * *"` (11 UTC = 8h BRT) |
+O agendamento no `monitor.yml` roda **a cada 4 horas**. Cada execução também
+salva o `status.json` no repositório (é o commit "status: ..." do
+`monitor-bot`) — é assim que ele lembra o que aconteceu na execução anterior.
 
 ---
 
-## Ajustes opcionais
+## Escolher quando receber mensagem (`MODO`)
 
-- **Receber mensagem só quando um site cair** (em vez do relatório sempre):
-  no `monitor.yml`, troque `SO_ALERTAS: "false"` por `SO_ALERTAS: "true"`.
-- **E-mail de reforço:** quando um site cai, o workflow termina com ❌ de
-  propósito — o GitHub te manda um e-mail de "workflow failed", servindo como
-  segundo alerta gratuito.
+No `monitor.yml`, a variável `MODO` controla isso:
+
+| `MODO`     | Você recebe                                                                 |
+| ---------- | --------------------------------------------------------------------------- |
+| `completo` | O relatório completo a **toda execução** (padrão — ~6 mensagens/dia)         |
+| `diario`   | Só quando **algo muda** (caiu, voltou, SSL vencendo, site ainda fora) **+ 1 resumo por dia** a partir da `RESUMO_HORA` (padrão 8h) |
+| `alertas`  | Só quando algo muda — silêncio total enquanto está tudo bem                  |
+
+Recomendação: `diario`. Você sabe que o robô está vivo (1 resumo de manhã) e
+só é incomodado quando importa.
 
 ## ⚠️ Por que este monitor NÃO serve como alarme urgente
 
 O evento `schedule` do GitHub Actions é **"melhor esforço"**: a própria
-documentação do GitHub avisa que agendamentos atrasam em períodos de carga, e
-na prática intervalos curtos (5–15 min) atrasam muito ou têm horários pulados.
-Em teste real neste repositório, um cron de 15 min ficou **mais de 1 hora sem
-disparar** nenhuma vez.
+documentação do GitHub avisa que agendamentos atrasam em períodos de carga.
+Medido neste repositório com o cron de 4h: atrasos de 30 min a 2 horas, e
+cerca de **metade dos horários simplesmente pulados**. Com cron de 15 min,
+ficou mais de 1 hora sem disparar nenhuma vez.
 
 Por isso a divisão de tarefas:
 
 | Ferramenta | Papel | Frequência |
 | ---------- | ----- | ---------- |
-| **HetrixTools** (hetrixtools.com) | Alarme urgente — avisa no Telegram quando um site cai | 1 minuto |
-| **Este repositório** | Relatório completo periódico de todos os sites | 4 horas |
+| **HetrixTools** (hetrixtools.com) | Alarme urgente — avisa no Telegram no minuto em que um site cai | 1 minuto |
+| **Este repositório** | Relatório completo, histórico, uptime, SSL | ~4 horas |
 
 O plano gratuito do HetrixTools inclui 15 monitores, checagem de 1 minuto e
 notificação via Telegram (só exige login no painel a cada 90 dias).
@@ -194,15 +216,16 @@ Enterprise), por isso não foi usado.
 
 ## Coisas boas de saber
 
-- **O horário do cron é UTC** (Brasília = UTC−3) e o GitHub pode atrasar alguns
-  minutos em horários de pico. Para monitoramento, isso não faz diferença.
+- **O horário do cron é UTC** (Brasília = UTC−3). O relatório já converte
+  para o horário de Brasília.
 - **Repositório parado 60 dias:** o GitHub pausa agendamentos de repositórios
-  sem nenhum commit há 60 dias e te avisa por e-mail. Basta clicar para
-  reativar — ou fazer qualquer commit (editar o `sites.txt`, por exemplo) que o
-  prazo zera.
-- **Limites do CallMeBot:** é gratuito para uso pessoal e aguenta tranquilo
-  algumas mensagens por dia. Rodando a cada 4h são só 6 mensagens/dia.
-- **Rodar no seu PC para testar (com Telegram):**
+  sem commits há 60 dias. Como o robô commita o `status.json` a cada
+  execução, isso **não acontece mais** com este projeto.
+- **Quando um site cai, a execução fica ❌ de propósito** — assim o GitHub te
+  manda um e-mail de "workflow failed", servindo como segundo alerta gratuito.
+- **Se o envio falhar** (Telegram fora, token errado), o `status.json` não é
+  atualizado — a próxima execução enxerga a mudança de novo e reavisa.
+- **Rodar no seu PC para testar:**
   ```bash
   pip install -r requirements.txt
   set TELEGRAM_TOKEN=7412345678:AAHxYz...
@@ -217,6 +240,6 @@ Enterprise), por isso não foi usado.
 | **Telegram Bot** (recomendada) | Grátis, ilimitado, super estável, oficial | Não é WhatsApp 🙂 |
 | **Green API** (WhatsApp) | Grátis p/ uso pessoal, seu próprio número vira o bot | Não oficial (WhatsApp Web); QR pode pedir reconexão de vez em quando |
 | **CallMeBot** (WhatsApp) | Grátis, 2 min de setup | Só manda p/ seu próprio número; às vezes lota e fecha cadastros |
-| Meta WhatsApp Cloud API | Oficial ("fazer o bot" do jeito certo) | Setup complexo (app Business, token de sistema) e fora da janela de 24h só envia mensagens-template pré-aprovadas — ruim p/ relatórios |
+| Meta WhatsApp Cloud API | Oficial | Setup complexo (app Business, token de sistema) e fora da janela de 24h só envia mensagens-template pré-aprovadas — ruim p/ relatórios |
 | Twilio Sandbox | Confiável | Sandbox expira a cada 72h (precisa reativar sempre) |
 | Bot caseiro (Baileys / whatsapp-web.js) | Controle total | Precisa de servidor ligado 24/7, protocolo não oficial (risco de banir o número) e quebra a cada atualização do WhatsApp |

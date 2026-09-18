@@ -3,13 +3,25 @@ name: Monitor de Sites
 on:
   schedule:
     # Relatório completo a cada 4 horas. O alarme rápido (queda em ~1 min) fica
-    # por conta do HetrixTools — o cron do GitHub é "melhor esforço" e atrasa,
-    # então não serve para alerta urgente, só para o resumo periódico.
-    # O minuto 17 (em vez de 0) evita a fila cheia do início de cada hora.
+    # por conta do HetrixTools — o cron do GitHub é "melhor esforço" e atrasa
+    # (medido aqui: até 2h de atraso e horários pulados), então não serve para
+    # alerta urgente, só para o resumo periódico. O minuto 17 (em vez de 0)
+    # evita a fila cheia do início de cada hora.
     - cron: "17 */4 * * *"
   workflow_dispatch: {}   # permite rodar manualmente pela aba Actions (bom p/ testar)
   push:
-    branches: [main]      # roda também a cada mudança no repositório
+    branches: [main]      # roda também a cada mudança no código/lista de sites
+    paths-ignore:
+      - status.json       # o próprio robô commita este arquivo
+      - README.md
+      - .gitignore
+
+permissions:
+  contents: write         # necessário para salvar o status.json no repositório
+
+concurrency:
+  group: monitor          # nunca roda duas verificações ao mesmo tempo
+  cancel-in-progress: false
 
 jobs:
   monitorar:
@@ -24,6 +36,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
 
       - name: Instalar dependências
         run: pip install -r requirements.txt
@@ -40,6 +53,21 @@ jobs:
           GREEN_API_URL: ${{ secrets.GREEN_API_URL }}
           # WhatsApp via CallMeBot (opcional — quando o bot voltar a aceitar cadastros)
           CALLMEBOT_APIKEY: ${{ secrets.CALLMEBOT_APIKEY }}
-          # Troque para "true" se quiser receber mensagem SÓ quando um site cair
-          SO_ALERTAS: "false"
+          # Quando mandar mensagem:
+          #   completo -> relatório completo a toda execução (padrão)
+          #   diario   -> só mudanças (caiu/voltou/SSL) + 1 resumo por dia
+          #   alertas  -> só mudanças
+          MODO: completo
+          RESUMO_HORA: "8"   # hora (Brasília) do resumo no modo diario
         run: python monitor.py
+
+      - name: Salvar histórico (status.json)
+        if: always()        # roda mesmo quando um site caiu (passo acima termina em erro)
+        run: |
+          git config user.name "monitor-bot"
+          git config user.email "monitor-bot@users.noreply.github.com"
+          git add status.json
+          if git diff --staged --quiet; then echo "status.json não mudou"; exit 0; fi
+          git commit -q -m "status: $(date -u +%d/%m/%Y\ %H:%M) UTC"
+          git pull -q --rebase origin main || true
+          git push -q || echo "AVISO: não consegui salvar o status.json (tento na próxima)"

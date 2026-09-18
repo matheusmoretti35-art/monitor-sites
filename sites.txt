@@ -1,7 +1,10 @@
 # Lista de sites monitorados — um por linha, no formato:
-#   Nome do site | https://endereco.com
-# Linhas começando com # são ignoradas.
+#   Nome do site | https://endereco.com | texto que deve aparecer na página (opcional)
+#
+# O 3º campo é a "prova de vida": se a página responder 200 mas não tiver esse
+# texto (página de manutenção, domínio estacionado, erro do CMS), conta como fora.
+# Use algo estável, como o nome da marca. Linhas começando com # são ignoradas.
 
-RB Run Club | https://rbrunclub.com.br/
-Toca do Aranha | https://tocadoaranha.com.br/
-Conexão Freelance | https://www.conexaofreelance.com.br/
+RB Run Club | https://rbrunclub.com.br/ | RB Run Club
+Toca do Aranha | https://tocadoaranha.com.br/ | Spider Store
+Conexão Freelance | https://www.conexaofreelance.com.br/ | Conexão Freelance
