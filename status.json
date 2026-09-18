@@ -1,0 +1,28 @@
+{
+  "sites": {
+    "https://rbrunclub.com.br/": {
+      "online": true,
+      "desde": "2026-09-18T21:50:21.591843+00:00",
+      "historico": "1",
+      "ultimo_incidente": null,
+      "nome": "RB Run Club",
+      "ultima_checagem": "2026-09-18T21:50:21.591843+00:00"
+    },
+    "https://tocadoaranha.com.br/": {
+      "online": true,
+      "desde": "2026-09-18T21:50:21.591843+00:00",
+      "historico": "1",
+      "ultimo_incidente": null,
+      "nome": "Toca do Aranha",
+      "ultima_checagem": "2026-09-18T21:50:21.591843+00:00"
+    },
+    "https://www.conexaofreelance.com.br/": {
+      "online": true,
+      "desde": "2026-09-18T21:50:21.591843+00:00",
+      "historico": "1",
+      "ultimo_incidente": null,
+      "nome": "Conexão Freelance",
+      "ultima_checagem": "2026-09-18T21:50:21.591843+00:00"
+    }
+  }
+}
