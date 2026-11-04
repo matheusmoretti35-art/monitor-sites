@@ -1,9 +1,22 @@
-# 🖥️ Monitor de Sites com aviso no celular
+# Monitor de Sites
+
+[![Monitor de Sites](https://github.com/matheusmoretti35-art/monitor-sites/actions/workflows/monitor.yml/badge.svg)](https://github.com/matheusmoretti35-art/monitor-sites/actions/workflows/monitor.yml)
+[![CI](https://github.com/matheusmoretti35-art/monitor-sites/actions/workflows/ci.yml/badge.svg)](https://github.com/matheusmoretti35-art/monitor-sites/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-agendado-2088FF?logo=githubactions&logoColor=white)
 
 Verifica de tempos em tempos se seus sites estão no ar, guarda o histórico
 (quando caiu, quanto tempo ficou fora, uptime), vigia o vencimento do SSL e
 manda um relatório no seu celular — tudo rodando de graça no GitHub Actions,
 sem precisar deixar o computador ligado.
+
+**Destaques técnicos**
+
+- Sem servidor: o agendamento roda no GitHub Actions e o estado (`status.json`) é versionado no próprio repositório.
+- Detecta "falsos 200" (página de manutenção, domínio estacionado) procurando um texto esperado no HTML.
+- Alerta de vencimento de certificado SSL com 14 dias de antecedência.
+- Envio multicanal (Telegram, Green API, CallMeBot) com fallback e reenvio se a notificação falhar.
+- Três modos de notificação (`completo`, `diario`, `alertas`) para controlar o volume de mensagens.
 
 ## O que ele verifica
 
@@ -40,6 +53,8 @@ Exemplo da mensagem que chega:
 | `.github/workflows/monitor.yml` | O agendamento no GitHub Actions |
 | `status.json` | Histórico — **criado e atualizado pelo próprio robô**, não edite |
 | `requirements.txt` | Dependências |
+| `tests/` | Testes automatizados (pytest) |
+| `.github/workflows/ci.yml` | Lint + testes a cada push e pull request |
 
 ### Formato do `sites.txt`
 
@@ -243,3 +258,14 @@ Enterprise), por isso não foi usado.
 | Meta WhatsApp Cloud API | Oficial | Setup complexo (app Business, token de sistema) e fora da janela de 24h só envia mensagens-template pré-aprovadas — ruim p/ relatórios |
 | Twilio Sandbox | Confiável | Sandbox expira a cada 72h (precisa reativar sempre) |
 | Bot caseiro (Baileys / whatsapp-web.js) | Controle total | Precisa de servidor ligado 24/7, protocolo não oficial (risco de banir o número) e quebra a cada atualização do WhatsApp |
+
+## Desenvolvimento
+
+```bash
+pip install -r requirements-dev.txt
+ruff check .
+pytest -q
+```
+
+O workflow **CI** roda lint e testes a cada push e pull request. Alterações só
+em testes, templates ou configuração de lint não disparam o monitor.

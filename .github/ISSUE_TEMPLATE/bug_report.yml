@@ -1,0 +1,22 @@
+name: Relatar problema
+description: Algo não funcionou como esperado
+labels: [bug]
+body:
+  - type: textarea
+    id: descricao
+    attributes:
+      label: O que aconteceu?
+      description: Descreva o problema e o que você esperava que acontecesse.
+    validations:
+      required: true
+  - type: textarea
+    id: log
+    attributes:
+      label: Log da execução
+      description: Trecho do passo "Verificar sites e enviar avisos" na aba Actions. Não cole tokens nem secrets.
+      render: text
+  - type: dropdown
+    id: canal
+    attributes:
+      label: Canal de aviso
+      options: [Telegram, Green API, CallMeBot, Nenhum]

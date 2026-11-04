@@ -15,6 +15,12 @@ on:
       - status.json       # o próprio robô commita este arquivo
       - README.md
       - .gitignore
+      - tests/**              # testes, lint e templates não mudam o monitoramento
+      - pyproject.toml
+      - requirements-dev.txt
+      - .github/workflows/ci.yml
+      - .github/ISSUE_TEMPLATE/**
+      - .github/pull_request_template.md
 
 permissions:
   contents: write         # necessário para salvar o status.json no repositório
