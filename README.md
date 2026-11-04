@@ -269,3 +269,7 @@ pytest -q
 
 O workflow **CI** roda lint e testes a cada push e pull request. Alterações só
 em testes, templates ou configuração de lint não disparam o monitor.
+
+## Licença
+
+[MIT](LICENSE)

@@ -3,6 +3,7 @@ name = "monitor-sites"
 version = "1.0.0"
 description = "Monitor de disponibilidade e SSL de sites com relatório no Telegram/WhatsApp via GitHub Actions"
 requires-python = ">=3.10"
+license = { text = "MIT" }
 dependencies = ["requests>=2.31"]
 
 [tool.ruff]

@@ -17,6 +17,7 @@ on:
       - .gitignore
       - tests/**              # testes, lint e templates não mudam o monitoramento
       - pyproject.toml
+      - LICENSE
       - requirements-dev.txt
       - .github/workflows/ci.yml
       - .github/ISSUE_TEMPLATE/**
